@@ -3,12 +3,8 @@ import requests
 import pygame
 import json
 import time
-import http.client
-global userinput
-global passwordinput
-userinput = False
-passwordinput = False
 BLACKE = (0,0,0)
+BLUE = (0,0,255)
 pygame.init()
 pygame.display.init()
 def StartGame():
@@ -16,6 +12,7 @@ def StartGame():
     window = window.newscreen()
     text_box_user = TextBox(270, 30, 525, 400, callback=callback)
     text_box_password = TextBox(270, 30, 525, 463, callback=callback)
+    login_button = button(63,37,900,400)
     while True:
         time.sleep(0.01)
         # window = background()
@@ -23,21 +20,20 @@ def StartGame():
         # text_box_user = TextBox(270, 30, 525, 400, callback=callback)
         # text_box_password = TextBox(270, 30, 525, 463, callback=callback)
         eventlist = pygame.event.get()
-
         for event in eventlist:
             if event.type == pygame.QUIT:
                 Endgame()
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                change(event.pos,text_box_user.rect(),text_box_password.rect(),userinput,passwordinput)
+                change(event.pos,text_box_user.getlist(),text_box_password.getlist())
+                if login_button.mousepress(event.pos):
+                    login(text_box_user.gettext(),text_box_password.gettext())
             elif event.type == pygame.KEYDOWN and  userinput:
-                print(1)
                 text_box_user.key_down(event)
             elif event.type == pygame.KEYDOWN and passwordinput:
-                # print(2)
                 text_box_password.key_down(event)
-
         text_box_user.draw(window)
-        text_box_password.draw(window)     
+        text_box_password.draw(window)
+        login_button.draw(window)  
         pygame.display.update()
 
 def Endgame():
@@ -67,10 +63,10 @@ class TextBox:
         self.font = pygame.font.Font(None, 31)  
  
     def draw(self,dest_surf):
-        text_surf = self.font.render(self.text, True, (255, 255, 255))
+        text_surf = self.font.render(self.text, True, (255,255,255))
         dest_surf.blit(self.__surface, (self.x, self.y))
-        dest_surf.blit(text_surf,(self.x, self.y + (self.height - text_surf.get_height())),
-                       (0, 0, self.width, self.height))
+        dest_surf.blit(text_surf,(self.x+5, self.y + (self.height - text_surf.get_height())),
+                       (0, 0, self.width-5, self.height))
  
     def key_down(self,event):
         unicode = event.unicode
@@ -96,9 +92,11 @@ class TextBox:
         else:
             char = chr(key)
         self.text += char
-    def getrect(self):
-        return self.rect
- 
+    def getlist(self):
+        list = [self.x,self.y,self.width,self.height]
+        return list 
+    def gettext(self):
+        return self.text
 def callback():
     print("回车测试")
  
@@ -122,13 +120,55 @@ class background():
         textsurface2 = font.render('密   码:',True,BLACKE)
         return textsurface1,textsurface2
 
-def change(rect,user,password,userinput,passwordinput):
-    print(user)
-    print(password)
-    
+def change(rect,userlist,passwordlist):
+    x,y = rect
+    global userinput
+    global passwordinput
+    if x>userlist[0] and x<userlist[0]+userlist[2] and y>userlist[1] and y<userlist[1]+userlist[3]:
+        userinput = True
+    else:
+        userinput = False   
+    if x>passwordlist[0] and x<passwordlist[0]+passwordlist[2] and y>passwordlist[1] and y<passwordlist[1]+passwordlist[3]:
+        passwordinput = True
+    else:
+        passwordinput =False
 
+def login(user,password):
+    url = "https://api.shisanshui.rtxux.xyz/auth/login"
+    payload = "{\"username\":\""+user+"\",\"password\":\""+password+"\"}"
+    headers = {'content-type': 'application/json'}
+    response = requests.request("POST", url, data=payload, headers=headers)
+    print(response.text)
 
-
+class button():
+    def __init__(self,w,h,x,y,font='fdbsjw.ttf'):
+        """ 
+        w:按钮的宽度
+        h:按钮的高度
+        x:按钮的x坐标
+        y:按钮的y坐标
+        """
+        self.width = w
+        self.height = h
+        self.x  = x
+        self.y  = y
+        self.font = pygame.font.Font(font,31)
+        self.__surface = pygame.Surface((w,h))
+        self.rect = self.__surface.get_rect()
+        self.rect[0] = self.x
+        self.rect[1] = self.y
+    def draw(self,dest_surf):
+        text_surf = self.font.render('登陆',True,(0,255,0))
+        dest_surf.fill((50,50,255),self.rect)
+        dest_surf.blit(text_surf,(self.x,self.y))
+    def mousepress(self,rect):
+        x,y = rect
+        if x>self.x and x<self.x+self.width and y>self.y and y<self.y+self.height:
+            return True
+        else:
+            return False
+def register():
+    pass
 
 
 
