@@ -8,17 +8,18 @@ BLUE = (0,0,255)
 pygame.init()
 pygame.display.init()
 def StartGame():
+    loginflag = False
     window = background()
     window = window.newscreen()
     text_box_user = TextBox(270, 30, 525, 400, callback=callback)
     text_box_password = TextBox(270, 30, 525, 463, callback=callback)
-    login_button = button(63,37,900,400)
+    login_button = button(63,37,900,400,'登陆')
+    register_button = button(63,37,900,460,'注册')
+    start_game = button(126,37,100,400,'开启战局')
+    history = button(126,37,300,400,'历史战绩')
+    rankinglist = button(126,37,500,400,'排行榜') 
     while True:
         time.sleep(0.01)
-        # window = background()
-        # window = window.newscreen()
-        # text_box_user = TextBox(270, 30, 525, 400, callback=callback)
-        # text_box_password = TextBox(270, 30, 525, 463, callback=callback)
         eventlist = pygame.event.get()
         for event in eventlist:
             if event.type == pygame.QUIT:
@@ -26,14 +27,23 @@ def StartGame():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 change(event.pos,text_box_user.getlist(),text_box_password.getlist())
                 if login_button.mousepress(event.pos):
-                    login(text_box_user.gettext(),text_box_password.gettext())
+                    login_class = Login(text_box_user.gettext(),text_box_password.gettext())
+                    login_class.login()
+                    if login_class.response_statue_code== 200:
+                        loginflag = True
+                        backimage = pygame.image.load("background.jpg")
+                        window.blit(backimage,(0,0))
+                elif register_button.mousepress(event.pos):
+                    register(text_box_user.gettext(),text_box_password.gettext())
             elif event.type == pygame.KEYDOWN and  userinput:
                 text_box_user.key_down(event)
             elif event.type == pygame.KEYDOWN and passwordinput:
                 text_box_password.key_down(event)
-        text_box_user.draw(window)
-        text_box_password.draw(window)
-        login_button.draw(window)  
+        if not loginflag:
+            text_box_user.draw(window)
+            text_box_password.draw(window)
+            login_button.draw(window)
+            register_button.draw(window) 
         pygame.display.update()
 
 def Endgame():
@@ -133,20 +143,14 @@ def change(rect,userlist,passwordlist):
     else:
         passwordinput =False
 
-def login(user,password):
-    url = "https://api.shisanshui.rtxux.xyz/auth/login"
-    payload = "{\"username\":\""+user+"\",\"password\":\""+password+"\"}"
-    headers = {'content-type': 'application/json'}
-    response = requests.request("POST", url, data=payload, headers=headers)
-    print(response.text)
-
 class button():
-    def __init__(self,w,h,x,y,font='fdbsjw.ttf'):
+    def __init__(self,w,h,x,y,buttontext,font='fdbsjw.ttf'):
         """ 
         w:按钮的宽度
         h:按钮的高度
         x:按钮的x坐标
         y:按钮的y坐标
+        buttontext:按钮显示的文字
         """
         self.width = w
         self.height = h
@@ -157,8 +161,9 @@ class button():
         self.rect = self.__surface.get_rect()
         self.rect[0] = self.x
         self.rect[1] = self.y
+        self.buttontext = buttontext
     def draw(self,dest_surf):
-        text_surf = self.font.render('登陆',True,(0,255,0))
+        text_surf = self.font.render(self.buttontext,True,(0,255,0))
         dest_surf.fill((50,50,255),self.rect)
         dest_surf.blit(text_surf,(self.x,self.y))
     def mousepress(self,rect):
@@ -167,8 +172,24 @@ class button():
             return True
         else:
             return False
-def register():
-    pass
+class Login(button):
+    def __init__(self,user,password):
+        self.user = user
+        self.password = password
+    def login(self):
+        url = "https://api.shisanshui.rtxux.xyz/auth/login"
+        payload = "{\"username\":\""+self.user+"\",\"password\":\""+self.password+"\"}"
+        headers = {'content-type': 'application/json'}
+        self.response = requests.request("POST", url, data=payload, headers=headers)
+        print(self.response.text)
+        self.response_statue_code = self.response.status_code
+
+def register(user,password):
+    url = "https://api.shisanshui.rtxux.xyz/auth/register"
+    payload = "{\"username\":\""+user+"\",\"password\":\""+password+"\"}"
+    headers = {'content-type': 'application/json'}
+    response = requests.request("POST", url, data=payload, headers=headers)
+    print(response.text)
 
 
 
