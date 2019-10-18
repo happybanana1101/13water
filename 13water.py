@@ -33,8 +33,7 @@ def StartGame():
                         change(event.pos, text_box_user.getlist(),
                         text_box_password.getlist())
                         if login_botton.mousepress(event.pos):
-                            login_class = Login(
-                            text_box_user.gettext(), text_box_password.gettext())
+                            login_class = Login(text_box_user.gettext(), text_box_password.gettext())
                             login_class.login()
                             if login_class.response_statue_code == 200:
                                 home_surface = True
@@ -68,15 +67,15 @@ def StartGame():
                     if event.type == pygame.QUIT:
                         Endgame()
                     elif event.type == pygame.MOUSEBUTTONDOWN:
-                        if start_button.mousepress:
+                        if start_button.mousepress(event.pos):
                             home_surface = False
                             game_surface = True
                             break
-                        elif history_button.mousepress:
+                        elif history_button.mousepress(event.pos):
                             home_surface = False
                             history_surface = True
                             break
-                        elif rankingbutton.mousepress:
+                        elif rankingbutton.mousepress(event.pos):
                             home_surface = False
                             ranking_surface = True
                             break
@@ -101,7 +100,62 @@ def StartGame():
                             break
                     elif event.type == pygame.QUIT:
                         Endgame()
-        # elif history_surface: #历史战绩界面
+        elif ranking_surface: #排行榜界面
+            backsurface = pygame.image.load("background.jpg")
+            window.blit(backsurface,(0,0))
+            titlefont = pygame.font.Font('fdbsjw.ttf',40)
+            title_surface = titlefont.render("名次           ID                分数",True,BLACKE)
+            rankfont = pygame.font.Font("fdbsjw.ttf",20)
+            lastpage_button = button(94,37,900,400,"上一页")
+            nextpage_button = button(94,37,900,460,'下一页')
+            lastpage_button.draw(window)
+            nextpage_button.draw(window)
+            return_button = button(63,37,0,0,"返回")
+            return_button.draw(window)
+            pygame.display.update()
+            url = "https://api.shisanshui.rtxux.xyz/rank"
+            response = requests.request("GET", url)
+            rank_date_json = response.text
+            rank_date_list = json.loads(rank_date_json)
+            page = 0
+            pygame.display.update()
+            while ranking_surface:
+                time.sleep(0.01)
+                eventlist = pygame.event.get()
+                for event in eventlist:
+                    if event.type == pygame.QUIT:
+                        Endgame()
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if lastpage_button.mousepress(event.pos):
+                            if page > 0:
+                                page -= 1
+                        elif nextpage_button.mousepress(event.pos):
+                            if (page+1)*7 < len(rank_date_list):
+                                page += 1
+                        elif return_button.mousepress(event.pos):
+                            ranking_surface = False
+                            home_surface = True
+                            break
+                window.blit(backsurface,(0,0))
+                lastpage_button.draw(window)
+                nextpage_button.draw(window)
+                return_button.draw(window)
+                window.blit(title_surface,(200,300))
+                for i in range(1,8):
+                    rank = rankfont.render(str(i+page*7),True,BLACKE)
+                    window.blit(rank,(220,int(320+i*32)))
+                    pygame.display.update()
+                for i in range(0,7):
+                    id = Text_ID(250,30,420,int(308+(i+1)*32),rank_date_list[i+page*7]['name'])
+                    id.draw(window)
+                    pygame.display.update()
+                for i in range(0,7):
+                    score = rankfont.render(str(rank_date_list[i+page*7]['score']),True,BLACKE)
+                    window.blit(score,(700,int(320+(i+1)*32)))
+                    pygame.display.update()
+
+
+                
 
 def playcard():
     pass          
@@ -267,6 +321,32 @@ def register(user, password):
     response = requests.request("POST", url, data=payload, headers=headers)
     print(response.text)
 
+class Text_ID:
+    def __init__(self, w, h, x, y, text):
+        """
+        :param w:文本框宽度
+        :param h:文本框高度
+        :param x:文本框坐标
+        :param y:文本框坐标
+        :param font:文本框中使用的字体
+        :param callback:在文本框按下回车键之后的回调函数
+        """
+        self.width = w
+        self.height = h
+        self.x = x
+        self.y = y
+        self.text = text  # 文本框内容
+        self.callback = callback
+        self.rect = None  # 文本框矩形区域
+        # 创建
+        self.__surface = pygame.Surface((w, h))
+        self.rect = self.__surface.get_rect()
+        self.font = pygame.font.Font('fdbsjw.ttf', 20)
+
+    def draw(self, dest_surf):
+        text_surf = self.font.render(self.text, True, BLACKE)
+        # dest_surf.blit(self.__surface, (self.x, self.y))
+        dest_surf.blit(text_surf, (self.x+5, self.y + (self.height - text_surf.get_height())),(0, 0, self.width-5, self.height))
 
 if __name__ == "__main__":
     StartGame()
