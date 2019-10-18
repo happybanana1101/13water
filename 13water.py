@@ -11,47 +11,47 @@ userinput = False
 passwordinput = False
 def StartGame():
     home_surface = False
+    game_surface = False
     login_surface = True
     ranking_surface = False
     history_surface = False
     while True:
-        if login_surface:
+        if login_surface: #登陆界面
             window = background()
             window = window.newscreen()
             text_box_user = TextBox(270, 30, 525, 400, callback=callback)
             text_box_password = TextBox(270, 30, 525, 463, callback=callback)
             login_botton = button(63, 37, 900, 400, '登陆')
             register_button = button(63, 37, 900, 460, '注册')
-        while login_surface:
-            time.sleep(0.01)
-            eventlist = pygame.event.get()
-            for event in eventlist:
-                if event.type == pygame.QUIT:
-                    Endgame()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    change(event.pos, text_box_user.getlist(),
-                           text_box_password.getlist())
-                    if login_botton.mousepress(event.pos):
-                        login_class = Login(
+            while login_surface:
+                time.sleep(0.01)
+                eventlist = pygame.event.get()
+                for event in eventlist:
+                    if event.type == pygame.QUIT:
+                        Endgame()
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        change(event.pos, text_box_user.getlist(),
+                        text_box_password.getlist())
+                        if login_botton.mousepress(event.pos):
+                            login_class = Login(
                             text_box_user.gettext(), text_box_password.gettext())
-                        login_class.login()
-                        if login_class.response_statue_code == 200:
-                            home_surface = True
-                            login_surface = False
-                            break
-                    elif register_button.mousepress(event.pos):
-                        register(text_box_user.gettext(),
-                                 text_box_password.gettext())
-                elif event.type == pygame.KEYDOWN and userinput:
-                    text_box_user.key_down(event)
-                elif event.type == pygame.KEYDOWN and passwordinput:
-                    text_box_password.key_down(event)
-            text_box_user.draw(window)
-            text_box_password.draw(window)
-            login_botton.draw(window)
-            register_button.draw(window)
-            pygame.display.update()
-        if home_surface:
+                            login_class.login()
+                            if login_class.response_statue_code == 200:
+                                home_surface = True
+                                login_surface = False
+                                break
+                        elif register_button.mousepress(event.pos):
+                            register(text_box_user.gettext(),text_box_password.gettext())
+                    elif event.type == pygame.KEYDOWN and userinput:
+                        text_box_user.key_down(event)
+                    elif event.type == pygame.KEYDOWN and passwordinput:
+                        text_box_password.key_down(event)
+                text_box_user.draw(window)
+                text_box_password.draw(window)
+                login_botton.draw(window)
+                register_button.draw(window)
+                pygame.display.update()
+        elif home_surface:  #主界面
             backsurface = pygame.image.load("background.jpg")
             window.blit(backsurface,(0,0))
             start_button = button(126,37,370,400,"开始游戏")
@@ -61,14 +61,50 @@ def StartGame():
             history_button.draw(window)
             rankingbutton.draw(window)
             pygame.display.update()
-        while home_surface:
-            time.sleep(0.01)
-            eventlist = pygame.event.get()
-            for event in eventlist:
-                if event.type == pygame.QUIT:
-                    Endgame()
+            while home_surface:
+                time.sleep(0.01)
+                eventlist = pygame.event.get()
+                for event in eventlist:
+                    if event.type == pygame.QUIT:
+                        Endgame()
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if start_button.mousepress:
+                            home_surface = False
+                            game_surface = True
+                            break
+                        elif history_button.mousepress:
+                            home_surface = False
+                            history_surface = True
+                            break
+                        elif rankingbutton.mousepress:
+                            home_surface = False
+                            ranking_surface = True
+                            break
+        elif game_surface: #出牌界面
+            backsurface = pygame.image.load("未标题-1.jpg")
+            window.blit(backsurface,(0,0))
+            playcard_button = button(63,37,570,400,"出牌")
+            return_button = button(63,37,0,0,"返回")
+            playcard_button.draw(window)
+            return_button.draw(window)
+            pygame.display.update()
+            while game_surface:
+                time.sleep(0.01)
+                eventlist = pygame.event.get()
+                for event in eventlist:
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        if playcard_button.mousepress(event.pos):
+                            playcard()
+                        elif return_button.mousepress(event.pos):
+                            home_surface = True
+                            game_surface = False
+                            break
+                    elif event.type == pygame.QUIT:
+                        Endgame()
+        # elif history_surface: #历史战绩界面
 
-            
+def playcard():
+    pass          
 
 def Endgame():
     exit()
