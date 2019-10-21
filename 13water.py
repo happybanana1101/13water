@@ -113,7 +113,7 @@ def StartGame():
             return_button = button(63,37,0,0,"返回")
             return_button.draw(window)
             pygame.display.update()
-            url = "https://api.shisanshui.rtxux.xyz/rank"
+            url = "http://www.revth.com:12300/rank"
             response = requests.request("GET", url)
             rank_date_json = response.text
             rank_date_list = json.loads(rank_date_json)
@@ -130,7 +130,7 @@ def StartGame():
                             if page > 0:
                                 page -= 1
                         elif nextpage_button.mousepress(event.pos):
-                            if (page+1)*7 < len(rank_date_list):
+                            if (page+1)*7 <= len(rank_date_list):
                                 page += 1
                         elif return_button.mousepress(event.pos):
                             ranking_surface = False
@@ -153,7 +153,63 @@ def StartGame():
                     score = rankfont.render(str(rank_date_list[i+page*7]['score']),True,BLACKE)
                     window.blit(score,(700,int(320+(i+1)*32)))
                     pygame.display.update()
-
+        elif history_surface: #历史战绩界面
+            backsurface = pygame.image.load("background.jpg")
+            window.blit(backsurface,(0,0))
+            titlefont = pygame.font.Font('fdbsjw.ttf',40)
+            title_surface = titlefont.render("ID           时间                分数",True,BLACKE)
+            rankfont = pygame.font.Font("fdbsjw.ttf",20)
+            lastpage_button = button(94,37,900,400,"上一页")
+            nextpage_button = button(94,37,900,460,'下一页')
+            lastpage_button.draw(window)
+            nextpage_button.draw(window)
+            return_button = button(63,37,0,0,"返回")
+            return_button.draw(window)
+            pygame.display.update()
+            page = 0
+            pygame.display.update()
+            response = history_date(login_class,page)
+            while history_surface:
+                time.sleep(0.01)
+                eventlist = pygame.event.get()
+                for event in eventlist:
+                    if event.type == pygame.QUIT:
+                        Endgame()
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if lastpage_button.mousepress(event.pos):
+                            if page > 0:
+                                page -= 1
+                        elif nextpage_button.mousepress(event.pos):
+                            if (page+1)*7 < len(rank_date_list):
+                                page += 1
+                        elif return_button.mousepress(event.pos):
+                            history_surface = False
+                            home_surface = True
+                            break
+                window.blit(backsurface,(0,0))
+                lastpage_button.draw(window)
+                nextpage_button.draw(window)
+                return_button.draw(window)
+                window.blit(title_surface,(200,300))
+                response = history_date(login_class,page)
+                response_data = json.loads(response.text)
+                response_data = response_data['data']
+                for i in range(0,7):
+                    if i >= len(response_data):
+                        break
+                    id = Text_ID(250,30,220,int(320+i*32),response_data[i+page*7]['id'])
+                    id.draw(window)
+                for i in range(0,7):
+                    if i >= len(response_data):
+                        break
+                    score = rankfont.render(response_data[i+page*7]['timestamp'],True,BLACKE)
+                    window.blit(score,(4200,int(320+(i+1)*32)))
+                for i in range(0,7):
+                    if i >= len(response_data):
+                        break
+                    score = rankfont.render(response_data[i+page*7]['score'],True,BLACKE)
+                    window.blit(score,(700,int(320+(i+1)*32)))
+                pygame.display.update()
 
                 
 
@@ -299,12 +355,13 @@ class button():
 
 
 class Login(button):
+    token = None
+    id = None
     def __init__(self, user, password):
         self.user = user
         self.password = password
-
     def login(self):
-        url = "https://api.shisanshui.rtxux.xyz/auth/login"
+        url = "http://www.revth.com:12300/auth/login"
         payload = "{\"username\":\""+self.user + \
             "\",\"password\":\""+self.password+"\"}"
         headers = {'content-type': 'application/json'}
@@ -312,13 +369,29 @@ class Login(button):
             "POST", url, data=payload, headers=headers)
         print(self.response.text)
         self.response_statue_code = self.response.status_code
+        response_data = json.loads(self.response.text)
+        response_data = response_data['data']
+        if self.response.status_code == 200:
+            self.token = response_data['token']
+            self.id = response_data['user_id']
+    def gettoken(self):
+        return self.token
+    def getid(self):
+        return self.id
 
 
 def register(user, password):
-    url = "https://api.shisanshui.rtxux.xyz/auth/register"
-    payload = "{\"username\":\""+user+"\",\"password\":\""+password+"\"}"
-    headers = {'content-type': 'application/json'}
-    response = requests.request("POST", url, data=payload, headers=headers)
+    url='http://www.revth.com:12300/auth/register2'
+    form_data={
+        "username": user,
+        "password": password,
+        "student_number":'031702641',
+        "student_password":'a15159756622'
+    }
+    headers={
+        "Content-Type":'application/json',
+    }
+    response=requests.post(url=url,headers=headers,data=json.dumps(form_data),verify=False)
     print(response.text)
 
 class Text_ID:
@@ -345,8 +418,12 @@ class Text_ID:
 
     def draw(self, dest_surf):
         text_surf = self.font.render(self.text, True, BLACKE)
-        # dest_surf.blit(self.__surface, (self.x, self.y))
         dest_surf.blit(text_surf, (self.x+5, self.y + (self.height - text_surf.get_height())),(0, 0, self.width-5, self.height))
-
+def history_date(login_class,page):
+    url = "http://www.revth.com:12300/history"
+    head = {'X-Auth-Token':login_class.gettoken()}
+    query = {'player_id':login_class.getid(),'limit':7,'page':page}
+    response = requests.get(url,headers = head,data = query)
+    return response
 if __name__ == "__main__":
     StartGame()
