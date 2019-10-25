@@ -361,12 +361,12 @@ class Login(button):
         self.user = user
         self.password = password
     def login(self):
-        url = "http://www.revth.com:12300/auth/login"
-        payload = "{\"username\":\""+self.user + \
-            "\",\"password\":\""+self.password+"\"}"
-        headers = {'content-type': 'application/json'}
-        self.response = requests.request(
-            "POST", url, data=payload, headers=headers)
+        url = "http://api.revth.com/auth/login"
+        payload = {"username":self.user,"password":self.password}
+        headers = {"Content-Type": 'application/json'}
+        payload = json.dumps(payload)
+        self.response = requests.post(
+             url, data=payload, headers=headers)
         print(self.response.text)
         self.response_statue_code = self.response.status_code
         response_data = json.loads(self.response.text)
