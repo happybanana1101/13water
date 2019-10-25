@@ -3,6 +3,7 @@ import requests
 import pygame
 import json
 import time
+import ai
 BLACKE = (0, 0, 0)
 BLUE = (0, 0, 255)
 pygame.init()
@@ -93,13 +94,14 @@ def StartGame():
                 for event in eventlist:
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if playcard_button.mousepress(event.pos):
-                            playcard()
+                            chupai(login_class)
                         elif return_button.mousepress(event.pos):
                             home_surface = True
                             game_surface = False
                             break
                     elif event.type == pygame.QUIT:
                         Endgame()
+
         elif ranking_surface: #排行榜界面
             backsurface = pygame.image.load("background.jpg")
             window.blit(backsurface,(0,0))
@@ -425,5 +427,31 @@ def history_date(login_class,page):
     query = {'player_id':login_class.getid(),'limit':7,'page':page}
     response = requests.get(url,headers = head,data = query)
     return response
+def chupai(login_class):
+    url ="http://api.revth.com/game/open"
+    token1 = login_class.gettoken()
+    date = {"X-Auth-Token":token1}
+    # date = json.dumps(date)
+    response = requests.post(url,headers = date)
+    card = response.text
+    card = json.loads(card)
+    card = card['data']
+    id = card['id']
+    card = card['card']
+    card = ai.AI(card)
+    print(card)
+    url = 'http://api.revth.com/game/submit'
+    header = {
+        "X-Auth-Token":token1,
+        "Content-Type":"application/json"
+    }
+    data = {
+        "id" :id,
+        "card" : card
+    }
+    # header = json.dumps(header)
+    data = json.dumps(data)
+    response = requests.post(url,data = data, headers = header )
+    print(response.text)
 if __name__ == "__main__":
     StartGame()
