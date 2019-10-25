@@ -199,17 +199,17 @@ def StartGame():
                 for i in range(0,7):
                     if i >= len(response_data):
                         break
-                    id = Text_ID(250,30,220,int(320+i*32),response_data[i+page*7]['id'])
+                    id = Text_ID(250,30,200,int(342+i*32),str(response_data[i+page*7]['id']))
                     id.draw(window)
                 for i in range(0,7):
                     if i >= len(response_data):
                         break
-                    score = rankfont.render(response_data[i+page*7]['timestamp'],True,BLACKE)
-                    window.blit(score,(4200,int(320+(i+1)*32)))
+                    time1 = rankfont.render(str(response_data[i+page*7]['timestamp']),True,BLACKE)
+                    window.blit(time1,(400,int(320+(i+1)*32)))
                 for i in range(0,7):
                     if i >= len(response_data):
                         break
-                    score = rankfont.render(response_data[i+page*7]['score'],True,BLACKE)
+                    score = rankfont.render(str(response_data[i+page*7]['score']),True,BLACKE)
                     window.blit(score,(700,int(320+(i+1)*32)))
                 pygame.display.update()
 
