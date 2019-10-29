@@ -25,7 +25,6 @@ def StartGame():
             login_botton = button(63, 37, 900, 400, '登陆')
             register_button = button(63, 37, 900, 460, '注册')
             while login_surface:
-                time.sleep(0.01)
                 eventlist = pygame.event.get()
                 for event in eventlist:
                     if event.type == pygame.QUIT:
@@ -94,7 +93,8 @@ def StartGame():
                 for event in eventlist:
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if playcard_button.mousepress(event.pos):
-                            chupai(login_class)
+                            for i in range(0,50):
+                                chupai(login_class)
                         elif return_button.mousepress(event.pos):
                             home_surface = True
                             game_surface = False
@@ -122,7 +122,6 @@ def StartGame():
             page = 0
             pygame.display.update()
             while ranking_surface:
-                time.sleep(0.01)
                 eventlist = pygame.event.get()
                 for event in eventlist:
                     if event.type == pygame.QUIT:
@@ -170,9 +169,7 @@ def StartGame():
             pygame.display.update()
             page = 0
             pygame.display.update()
-            response = history_date(login_class,page)
             while history_surface:
-                time.sleep(0.01)
                 eventlist = pygame.event.get()
                 for event in eventlist:
                     if event.type == pygame.QUIT:
@@ -182,7 +179,6 @@ def StartGame():
                             if page > 0:
                                 page -= 1
                         elif nextpage_button.mousepress(event.pos):
-                            if (page+1)*7 < len(rank_date_list):
                                 page += 1
                         elif return_button.mousepress(event.pos):
                             history_surface = False
@@ -199,24 +195,23 @@ def StartGame():
                 for i in range(0,7):
                     if i >= len(response_data):
                         break
-                    id = Text_ID(250,30,200,int(342+i*32),str(response_data[i+page*7]['id']))
+                    id = Text_ID(250,30,200,int(342+i*32),str(response_data[i]['id']))
                     id.draw(window)
+                    pygame.display.update()
                 for i in range(0,7):
                     if i >= len(response_data):
                         break
-                    time1 = rankfont.render(str(response_data[i+page*7]['timestamp']),True,BLACKE)
+                    time1 = rankfont.render(str(response_data[i]['timestamp']),True,BLACKE)
                     window.blit(time1,(400,int(320+(i+1)*32)))
+                    pygame.display.update()
                 for i in range(0,7):
                     if i >= len(response_data):
                         break
-                    score = rankfont.render(str(response_data[i+page*7]['score']),True,BLACKE)
+                    score = rankfont.render(str(response_data[i]['score']),True,BLACKE)
                     window.blit(score,(700,int(320+(i+1)*32)))
-                pygame.display.update()
+                    pygame.display.update()
 
                 
-
-def playcard():
-    pass          
 
 def Endgame():
     exit()
@@ -438,8 +433,8 @@ def chupai(login_class):
     card = card['data']
     id = card['id']
     card = card['card']
-    card = ai.AI(card)
     print(card)
+    card = ai.AI(card)
     url = 'http://api.revth.com/game/submit'
     header = {
         "X-Auth-Token":token1,
